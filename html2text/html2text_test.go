@@ -685,37 +685,39 @@ func TestDiv(t *testing.T) {
 }
 
 func TestBlockquotes(t *testing.T) {
+	// NOTE: Blockquotes at the start of content don't get '>' prefix to avoid formatting
+	// when the entire HTML is a blockquote. This behaviour has been in place since 2019.
 	testCases := []struct {
 		input  string
 		output string
 	}{
 		{
 			"<div>level 0<blockquote>level 1<br><blockquote>level 2</blockquote>level 1</blockquote><div>level 0</div></div>",
-			"level 0\n> \n> level 1\n> \n>> level 2\n> \n> level 1\n\nlevel 0",
+			"level 0 level 1\n> level 2\n> \n> level 1\n\nlevel 0",
 		},
 		{
 			"<blockquote>Test</blockquote>Test",
-			"> \n> Test\n\nTest",
+			"Test Test",
 		},
 		{
 			"\t<blockquote> \nTest<br></blockquote> ",
-			"> \n> Test\n>",
+			"Test",
 		},
 		{
 			"\t<blockquote> \nTest line 1<br>Test 2</blockquote> ",
-			"> \n> Test line 1\n> Test 2",
+			"Test line 1\nTest 2",
 		},
 		{
 			"<blockquote>Test</blockquote> <blockquote>Test</blockquote> Other Test",
-			"> \n> Test\n\n> \n> Test\n\nOther Test",
+			"Test Test\n\nOther Test",
 		},
 		{
 			"<blockquote>Lorem ipsum Commodo id consectetur pariatur ea occaecat minim aliqua ad sit consequat quis ex commodo Duis incididunt eu mollit consectetur fugiat voluptate dolore in pariatur in commodo occaecat Ut occaecat velit esse labore aute quis commodo non sit dolore officia Excepteur cillum amet cupidatat culpa velit labore ullamco dolore mollit elit in aliqua dolor irure do</blockquote>",
-			"> \n> Lorem ipsum Commodo id consectetur pariatur ea occaecat minim aliqua ad\n> sit consequat quis ex commodo Duis incididunt eu mollit consectetur fugiat\n> voluptate dolore in pariatur in commodo occaecat Ut occaecat velit esse\n> labore aute quis commodo non sit dolore officia Excepteur cillum amet\n> cupidatat culpa velit labore ullamco dolore mollit elit in aliqua dolor\n> irure do",
+			"Lorem ipsum Commodo id consectetur pariatur ea occaecat minim aliqua ad sit consequat quis ex commodo Duis incididunt eu mollit consectetur fugiat voluptate dolore in pariatur in commodo occaecat Ut occaecat velit esse labore aute quis commodo non sit dolore officia Excepteur cillum amet cupidatat culpa velit labore ullamco dolore mollit elit in aliqua dolor irure do",
 		},
 		{
 			"<blockquote>Lorem<b>ipsum</b><b>Commodo</b><b>id</b><b>consectetur</b><b>pariatur</b><b>ea</b><b>occaecat</b><b>minim</b><b>aliqua</b><b>ad</b><b>sit</b><b>consequat</b><b>quis</b><b>ex</b><b>commodo</b><b>Duis</b><b>incididunt</b><b>eu</b><b>mollit</b><b>consectetur</b><b>fugiat</b><b>voluptate</b><b>dolore</b><b>in</b><b>pariatur</b><b>in</b><b>commodo</b><b>occaecat</b><b>Ut</b><b>occaecat</b><b>velit</b><b>esse</b><b>labore</b><b>aute</b><b>quis</b><b>commodo</b><b>non</b><b>sit</b><b>dolore</b><b>officia</b><b>Excepteur</b><b>cillum</b><b>amet</b><b>cupidatat</b><b>culpa</b><b>velit</b><b>labore</b><b>ullamco</b><b>dolore</b><b>mollit</b><b>elit</b><b>in</b><b>aliqua</b><b>dolor</b><b>irure</b><b>do</b></blockquote>",
-			"> \n> Lorem *ipsum* *Commodo* *id* *consectetur* *pariatur* *ea* *occaecat* *minim*\n> *aliqua* *ad* *sit* *consequat* *quis* *ex* *commodo* *Duis* *incididunt* *eu*\n> *mollit* *consectetur* *fugiat* *voluptate* *dolore* *in* *pariatur* *in* *commodo*\n> *occaecat* *Ut* *occaecat* *velit* *esse* *labore* *aute* *quis* *commodo*\n> *non* *sit* *dolore* *officia* *Excepteur* *cillum* *amet* *cupidatat* *culpa*\n> *velit* *labore* *ullamco* *dolore* *mollit* *elit* *in* *aliqua* *dolor* *irure*\n> *do*",
+			"Lorem *ipsum* *Commodo* *id* *consectetur* *pariatur* *ea* *occaecat* *minim* *aliqua* *ad* *sit* *consequat* *quis* *ex* *commodo* *Duis* *incididunt* *eu* *mollit* *consectetur* *fugiat* *voluptate* *dolore* *in* *pariatur* *in* *commodo* *occaecat* *Ut* *occaecat* *velit* *esse* *labore* *aute* *quis* *commodo* *non* *sit* *dolore* *officia* *Excepteur* *cillum* *amet* *cupidatat* *culpa* *velit* *labore* *ullamco* *dolore* *mollit* *elit* *in* *aliqua* *dolor* *irure* *do*",
 		},
 	}
 

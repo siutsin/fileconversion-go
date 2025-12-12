@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func ExampleParseContent() {
+func Example_parseContent() {
 	var doc Doc
 
 	f, err := Open("./test.ods")

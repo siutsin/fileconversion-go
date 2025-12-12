@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func ExampleMetaTitle() {
+func Example_metaTitle() {
 	f, err := Open("./ods/test.ods")
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
