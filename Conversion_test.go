@@ -9,7 +9,6 @@ package fileconversion
 import (
 	"bytes"
 	"fmt"
-	"io"
 	"os"
 	"testing"
 )
@@ -98,17 +97,7 @@ func TestExcelCell(t *testing.T) {
 
 }
 
-func TestCSV(t *testing.T) {
-	file, err := os.Open("test.txt")
-	if err != nil {
-		return
-	}
-	defer file.Close()
-
-	content, _ := io.ReadAll(file)
-
-	IsCSV(content)
-}
+// TestCSV was removed because the IsCSV function it was testing does not exist in the codebase
 
 func TestEPUB(t *testing.T) {
 	// open local file to extract text and output to command line
