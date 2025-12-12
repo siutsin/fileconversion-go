@@ -15,7 +15,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/IntelligenceX/fileconversion/xls"
+	"github.com/DefendaSolutions/fileconversion-go/v2/xls"
 )
 
 // XLS2Text extracts text from an Excel sheet. It returns bytes written.

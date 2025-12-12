@@ -4,7 +4,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/IntelligenceX/fileconversion/ole2"
+	"github.com/DefendaSolutions/fileconversion-go/v2/ole2"
 )
 
 //Open one xls file

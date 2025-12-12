@@ -8,6 +8,7 @@ import (
 	"unicode"
 
 	"github.com/olekukonko/tablewriter"
+	"github.com/olekukonko/tablewriter/tw"
 	"github.com/ssor/bom"
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
@@ -22,43 +23,36 @@ type Options struct {
 
 // PrettyTablesOptions overrides tablewriter behaviors
 type PrettyTablesOptions struct {
-	AutoFormatHeader     bool
-	AutoWrapText         bool
-	ReflowDuringAutoWrap bool
-	ColWidth             int
-	ColumnSeparator      string
-	RowSeparator         string
-	CenterSeparator      string
-	HeaderAlignment      int
-	FooterAlignment      int
-	Alignment            int
-	ColumnAlignment      []int
-	NewLine              string
-	HeaderLine           bool
-	RowLine              bool
-	AutoMergeCells       bool
-	Borders              tablewriter.Border
+	AutoFormatHeader  tw.State
+	AutoFormatFooter  tw.State
+	AutoWrapText      int
+	ColWidth          int
+	HeaderAlignment   tw.Align
+	FooterAlignment   tw.Align
+	Alignment         tw.Align
+	ColumnAlignment   []tw.Align
+	NewLine           string
+	RowLine           tw.State
+	Borders           tw.Border
+	CustomSymbols     tw.Symbols
+	CustomSeparators  tw.Separators
+	CustomCellMerging tw.CellMerging
 }
 
 // NewPrettyTablesOptions creates PrettyTablesOptions with default settings
 func NewPrettyTablesOptions() *PrettyTablesOptions {
 	return &PrettyTablesOptions{
-		AutoFormatHeader:     true,
-		AutoWrapText:         true,
-		ReflowDuringAutoWrap: true,
-		ColWidth:             tablewriter.MAX_ROW_WIDTH,
-		ColumnSeparator:      tablewriter.COLUMN,
-		RowSeparator:         tablewriter.ROW,
-		CenterSeparator:      tablewriter.CENTER,
-		HeaderAlignment:      tablewriter.ALIGN_DEFAULT,
-		FooterAlignment:      tablewriter.ALIGN_DEFAULT,
-		Alignment:            tablewriter.ALIGN_DEFAULT,
-		ColumnAlignment:      []int{},
-		NewLine:              tablewriter.NEWLINE,
-		HeaderLine:           true,
-		RowLine:              false,
-		AutoMergeCells:       false,
-		Borders:              tablewriter.Border{Left: true, Right: true, Bottom: true, Top: true},
+		AutoFormatHeader: tw.On,
+		AutoFormatFooter: tw.On,
+		AutoWrapText:     tw.WrapNormal,
+		HeaderAlignment:  tw.AlignCenter,
+		FooterAlignment:  tw.AlignCenter,
+		Alignment:        tw.AlignDefault,
+		NewLine:          tw.NewLine,
+		Borders:          tw.Border{Left: tw.On, Right: tw.On, Bottom: tw.On, Top: tw.On},
+		CustomSymbols:    tw.NewSymbols(tw.StyleASCII),
+		CustomSeparators: tw.Separators{BetweenRows: tw.Off},
+		CustomCellMerging: tw.CellMerging{},
 	}
 }
 
@@ -342,32 +336,57 @@ func (ctx *textifyTraverseContext) handleTableElement(node *html.Node) error {
 		}
 
 		buf := &bytes.Buffer{}
-		table := tablewriter.NewWriter(buf)
-		if ctx.options.PrettyTablesOptions != nil {
-			options := ctx.options.PrettyTablesOptions
-			table.SetAutoFormatHeaders(options.AutoFormatHeader)
-			table.SetAutoWrapText(options.AutoWrapText)
-			table.SetReflowDuringAutoWrap(options.ReflowDuringAutoWrap)
-			table.SetColWidth(options.ColWidth)
-			table.SetColumnSeparator(options.ColumnSeparator)
-			table.SetRowSeparator(options.RowSeparator)
-			table.SetCenterSeparator(options.CenterSeparator)
-			table.SetHeaderAlignment(options.HeaderAlignment)
-			table.SetFooterAlignment(options.FooterAlignment)
-			table.SetAlignment(options.Alignment)
-			table.SetColumnAlignment(options.ColumnAlignment)
-			table.SetNewLine(options.NewLine)
-			table.SetHeaderLine(options.HeaderLine)
-			table.SetRowLine(options.RowLine)
-			table.SetAutoMergeCells(options.AutoMergeCells)
-			table.SetBorders(options.Borders)
-		}
-		table.SetHeader(ctx.tableCtx.header)
-		table.SetFooter(ctx.tableCtx.footer)
-		table.AppendBulk(ctx.tableCtx.body)
 
-		// Render the table using ASCII.
-		table.Render()
+		options := ctx.options.PrettyTablesOptions
+		if options == nil {
+			options = NewPrettyTablesOptions()
+		}
+
+		config := tablewriter.Config{
+			Header: tw.CellConfig{
+				Alignment:  tw.CellAlignment{Global: options.HeaderAlignment},
+				Formatting: tw.CellFormatting{AutoFormat: options.AutoFormatHeader},
+			},
+			Row: tw.CellConfig{
+				Alignment:    tw.CellAlignment{Global: options.Alignment},
+				Formatting:   tw.CellFormatting{AutoWrap: options.AutoWrapText},
+				ColMaxWidths: tw.CellWidth{Global: 32}, // Default max width for text wrapping
+			},
+			Footer: tw.CellConfig{
+				Alignment:  tw.CellAlignment{Global: options.FooterAlignment},
+				Formatting: tw.CellFormatting{AutoFormat: options.AutoFormatFooter},
+			},
+		}
+
+		if len(options.ColumnAlignment) > 0 {
+			config.Row.Alignment.PerColumn = options.ColumnAlignment
+		}
+
+		if options.ColWidth > 0 {
+			config.MaxWidth = options.ColWidth
+		}
+
+		if options.CustomCellMerging.Mode != 0 {
+			config.Row.Merging = options.CustomCellMerging
+		}
+
+		rendition := tw.Rendition{
+			Borders:  options.Borders,
+			Symbols:  options.CustomSymbols,
+			Settings: tw.Settings{Separators: options.CustomSeparators},
+		}
+
+		table := tablewriter.NewTable(buf,
+			tablewriter.WithConfig(config),
+			tablewriter.WithRendition(rendition),
+		)
+		table.Header(ctx.tableCtx.header)
+		table.Footer(ctx.tableCtx.footer)
+		table.Bulk(ctx.tableCtx.body)
+
+		if err := table.Render(); err != nil {
+			return err
+		}
 		if err := ctx.emit(buf.String()); err != nil {
 			return err
 		}
