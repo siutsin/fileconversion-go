@@ -14,7 +14,7 @@ import (
 	"errors"
 	"io"
 
-	"github.com/IntelligenceX/fileconversion/html2text"
+	"github.com/DefendaSolutions/fileconversion-go/v2/html2text"
 )
 
 // ODT2Text extracts text of an OpenDocument Text file

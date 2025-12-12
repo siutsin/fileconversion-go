@@ -11,7 +11,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/IntelligenceX/fileconversion/odf"
+	"github.com/DefendaSolutions/fileconversion-go/v2/odf"
 )
 
 type Doc struct {

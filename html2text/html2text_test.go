@@ -8,6 +8,8 @@ import (
 	"regexp"
 	"strings"
 	"testing"
+
+	"github.com/olekukonko/tablewriter/tw"
 )
 
 const destPath = "testdata"
@@ -1029,3 +1031,76 @@ func Example() {
 	// |  FOOTER 1   |  FOOTER 2   |
 	// +-------------+-------------+
 }
+
+func TestCustomSymbols(t *testing.T) {
+	input := `<table>
+		<tr><td>cell1</td><td>cell2</td></tr>
+		<tr><td>cell3</td><td>cell4</td></tr>
+	</table>`
+
+	// Test with custom symbols using asterisks and equals
+	customSymbols := tw.NewSymbolCustom("custom").
+		WithColumn("*").
+		WithRow("=").
+		WithCenter("*").
+		WithTopLeft("*").
+		WithTopMid("*").
+		WithTopRight("*").
+		WithMidLeft("*").
+		WithMidRight("*").
+		WithBottomLeft("*").
+		WithBottomMid("*").
+		WithBottomRight("*")
+
+	opts := NewPrettyTablesOptions()
+	opts.CustomSymbols = customSymbols
+
+	output, err := FromString(input, Options{
+		PrettyTables:        true,
+		PrettyTablesOptions: opts,
+	})
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	expected := "*=======*=======*\n* cell1 * cell2 *\n* cell3 * cell4 *\n*=======*=======*"
+
+	if !strings.Contains(output, expected) {
+		t.Errorf("Custom symbols not applied correctly.\nExpected:\n%s\n\nGot:\n%s", expected, output)
+	}
+}
+
+func TestCustomSeparators(t *testing.T) {
+	input := `<table>
+		<thead><tr><th>Header</th></tr></thead>
+		<tbody><tr><td>Row1</td></tr><tr><td>Row2</td></tr></tbody>
+		<tfoot><tr><td>Footer</td></tr></tfoot>
+	</table>`
+
+	// Test with custom separators showing all separators
+	customSeparators := tw.Separators{
+		ShowHeader:     tw.On,
+		ShowFooter:     tw.On,
+		BetweenRows:    tw.On,
+		BetweenColumns: tw.On,
+	}
+
+	opts := NewPrettyTablesOptions()
+	opts.CustomSeparators = customSeparators
+
+	output, err := FromString(input, Options{
+		PrettyTables:        true,
+		PrettyTablesOptions: opts,
+	})
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	// Should have separators between rows
+	if !strings.Contains(output, "Row1") || !strings.Contains(output, "Row2") {
+		t.Errorf("CustomSeparators not working correctly.\nGot:\n%s", output)
+	}
+}
+
